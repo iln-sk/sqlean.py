@@ -13,7 +13,8 @@ SQLEAN_VERSION := 0.27.4
 CONDA_FORGE_DIR := third_party/conda-forge
 CONDA_FORGE_PATCHES := \
 	$(CONDA_FORGE_DIR)/patches/0001-remove-sqlean-ipaddr-c-from-win.patch \
-	$(CONDA_FORGE_DIR)/patches/0002-fix-constants-in-sqlean-time-c.patch
+	$(CONDA_FORGE_DIR)/patches/0002.1-fix-constants-in-time-c.patch \
+	$(CONDA_FORGE_DIR)/patches/0002.2-fix-constants-in-duration-c.patch
 
 prepare-src:
 	mkdir -p sqlite
@@ -31,6 +32,8 @@ download-sqlean:
 	curl -L https://github.com/nalgeon/sqlean/archive/refs/tags/$(SQLEAN_VERSION).zip --output sqlean.zip
 	unzip sqlean.zip
 	mv sqlean-$(SQLEAN_VERSION) sqlean-src
+
+merge-sqlean:
 	mkdir -p \
 		  sqlite/crypto \
 		  sqlite/define \
@@ -81,8 +84,8 @@ download-sqlean:
 	rm -f sqlean.zip
 
 apply-conda-forge-patches:
-	git apply --check $(CONDA_FORGE_PATCHES)
-	git apply $(CONDA_FORGE_PATCHES)
+	git apply --verbose --ignore-space-change --check $(CONDA_FORGE_PATCHES)
+	git apply --verbose --ignore-space-change $(CONDA_FORGE_PATCHES)
 
 copy-conda-forge-files:
 	cp $(CONDA_FORGE_DIR)/test_windirent.h sqlite/test_windirent.h
@@ -93,7 +96,7 @@ clean:
 	rm -rf sqlean/*.so
 	rm -rf sqlean.py.egg-info
 
-prepare-build: prepare-src download-sqlite download-sqlean copy-conda-forge-files apply-conda-forge-patches
+prepare-build: prepare-src download-sqlite download-sqlean apply-conda-forge-patches merge-sqlean copy-conda-forge-files
 
 build:
 	python -m pip install --upgrade setuptools wheel

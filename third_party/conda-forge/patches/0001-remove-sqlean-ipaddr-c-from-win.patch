@@ -1,7 +1,7 @@
 # Derived from conda-forge/sqlean.py-feedstock
 # Original file: recipe/0001-remove-sqlean-ipaddr-c-from-win.patch
 # License: BSD-3-Clause
-# See: LICENSES/conda-forge-BSD-3-Clause.txt
+# See: third_party/conda-forge/LICENSE
 #
 diff -ruN sqlean_py-3.50.4.5/setup.py sqlean_py-3.50.4.5-patch/setup.py
 --- sqlean_py-3.50.4.5/setup.py	2025-10-25 09:54:50.000000000 +0200
