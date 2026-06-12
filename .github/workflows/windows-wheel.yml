@@ -1,0 +1,70 @@
+name: Build Windows wheels
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - windows-wheel-3.50.4.5
+    tags:
+      - "win-*"
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows-wheels:
+    name: Build Windows wheels
+    runs-on: windows-latest
+
+    env:
+      CIBW_BUILD: "cp313-win_amd64 cp314-win_amd64"
+      CIBW_SKIP: "pp* *-win32"
+      CIBW_TEST_COMMAND: >-
+        python -c "import sqlean;
+        sqlean.extensions.enable_all();
+        conn = sqlean.connect(':memory:');
+        assert conn.execute('select sqlean_version()').fetchone()[0] == '0.27.4';
+        assert conn.execute('select median(x) from (select 1 as x union all select 2 union all select 3)').fetchone()[0] == 2.0;
+        conn.close()"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MSYS
+          update: true
+          install: >-
+            git
+            make
+            curl
+            unzip
+
+      - name: Prepare generated sqlite sources
+        shell: msys2 {0}
+        run: make prepare-build
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install cibuildwheel
+        run: python -m pip install --upgrade pip cibuildwheel
+
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: sqlean.py-3.50.4.5-windows-wheels
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+          retention-days: 30

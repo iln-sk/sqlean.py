@@ -2,10 +2,18 @@
 # https://github.com/nalgeon/sqlite
 
 .PHONY: build
+.PHONY: apply-conda-forge-patches
+.PHONY: copy-conda-forge-files
+.PHONY: prepare-build
 
 SQLITE_RELEASE_YEAR := 2025
 SQLITE_VERSION := 3500400
 SQLEAN_VERSION := 0.27.4
+
+CONDA_FORGE_DIR := third_party/conda-forge
+CONDA_FORGE_PATCHES := \
+	$(CONDA_FORGE_DIR)/patches/0001-remove-sqlean-ipaddr-c-from-win.patch \
+	$(CONDA_FORGE_DIR)/patches/0002-fix-constants-in-sqlean-time-c.patch
 
 prepare-src:
 	mkdir -p sqlite
@@ -72,11 +80,20 @@ download-sqlean:
 	rm -rf sqlean-src
 	rm -f sqlean.zip
 
+apply-conda-forge-patches:
+	git apply --check $(CONDA_FORGE_PATCHES)
+	git apply $(CONDA_FORGE_PATCHES)
+
+copy-conda-forge-files:
+	cp $(CONDA_FORGE_DIR)/test_windirent.h sqlite/test_windirent.h
+
 clean:
 	rm -rf build/*
 	rm -f dist/*
 	rm -rf sqlean/*.so
 	rm -rf sqlean.py.egg-info
+
+prepare-build: prepare-src download-sqlite download-sqlean copy-conda-forge-files apply-conda-forge-patches
 
 build:
 	python -m pip install --upgrade setuptools wheel

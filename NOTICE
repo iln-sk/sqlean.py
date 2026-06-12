@@ -1,0 +1,8 @@
+This fork includes Windows build patches and supporting files derived from
+conda-forge/sqlean.py-feedstock.
+
+Source:
+https://github.com/conda-forge/sqlean.py-feedstock
+
+License:
+BSD-3-Clause. See third_party/conda-forge/LICENSE.txt.
